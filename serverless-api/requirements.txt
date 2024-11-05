@@ -2,3 +2,6 @@ fastapi
 uvicorn
 mangum
 httpx
+python-multipart
+ably
+python-dotenv

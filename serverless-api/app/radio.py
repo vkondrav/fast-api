@@ -1,15 +1,10 @@
 import asyncio
 import httpx
-from fastapi import FastAPI, Query, HTTPException, Request
+from fastapi import APIRouter, Query
 from pydantic import BaseModel
 from typing import List, Optional
-from mangum import Mangum
-import boto3
-from botocore.exceptions import ClientError
-import uuid
-from datetime import datetime, timezone
 
-app = FastAPI(title="Serverless Lambda")
+router = APIRouter(tags=["Radio"])
 
 class NowPlaying(BaseModel):
     title: str
@@ -23,7 +18,7 @@ class RadioStation(BaseModel):
     call_letters: str
     now_playing: Optional[NowPlaying] = None
 
-@app.get("/radio-stations", response_model=List[RadioStation], tags=["Seekr"])
+@router.get("/stations", response_model=List[RadioStation])
 async def get_radio_stations(followed_stations: Optional[List[int]] = Query(None, example=[730, 34253, 605])):
     """
     Returns a list of radio stations sorted by followed stations.
@@ -70,48 +65,3 @@ async def now_playing():
         except Exception as e:
             print(f"Error fetching now playing: {e}")
             return []
-
-class Message(BaseModel):
-    user: str
-    date: str
-    text: str
-    id: str
-        
-@app.get("/messages", response_model=List[Message], tags=["Chat"])
-async def get_messages():
-    dynamodb = boto3.resource('dynamodb')
-
-    table = dynamodb.Table('messages')
-    
-    try:
-        response = table.scan()
-        items = response.get('Items', [])
-        return [Message(**item) for item in items]
-    except Exception as e:
-        print(f"Error fetching messages: {e}")
-        return []
-    
-@app.post("/messages", response_model=Message, tags=["Chat"])
-async def create_message(request: Request, text: str):
-    dynamodb = boto3.resource('dynamodb')
-    table = dynamodb.Table('messages')
-    
-    user_id = request.headers.get('User-Agent', 'unknown')
-    message_id = str(uuid.uuid4())
-    current_time = datetime.now(timezone.utc).isoformat()
-    
-    message = Message(
-        user=user_id,
-        date=current_time,
-        text=text,
-        id=message_id
-    )
-    
-    try:
-        table.put_item(Item=message.model_dump())
-        return message
-    except Exception as e:
-        print(f"Error storing message: {e}")
-        raise HTTPException(status_code=500, detail="Error storing message")
-
-handler = Mangum(app)

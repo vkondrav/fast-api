@@ -80,3 +80,9 @@ This script will:
 - Update the AWS Lambda function with the new image
 - Wait for successful Lambda function deploy
 - Delete any dangling images from ECR
+
+### CHAT APP
+The serverless chat application can be reached at `/chat.html`
+Requires setup with [ably](https://ably.com/). Check the api keys in `chat.py` and `chat.js`
+
+![arch](chat.drawio.svg)

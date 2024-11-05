@@ -11,9 +11,14 @@
                 "ms-azuretools.vscode-docker",
                 "ms-python.black-formatter",
                 "foxundermoon.shell-format",
-                "manishsencha.readme-preview"
+                "manishsencha.readme-preview",
+                "flexpilot.flexpilot-vscode-extension",
+                "GitHub.copilot"
             ]
         }
     },
+    "mounts": [
+        "source=/Users/vkondratiev/.vscode/argv.json,target=/Users/vkondratiev/.vscode/argv.json,type=bind"
+    ],
     "postCreateCommand": "pip install -r requirements.txt"
 }
