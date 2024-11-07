@@ -56,7 +56,7 @@ async def get_messages(sort_order: Optional[str] = Query("asc", enum=["asc", "ds
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=400)
  
-async def publish_message(id):
+async def publish_message(message):
     
     global ably, channel
     
@@ -75,7 +75,7 @@ async def publish_message(id):
     if channel is None:
         channel = ably.channels.get('messages')
 
-    await channel.publish('id', id)
+    await channel.publish('message', message.json())
     
 def save_message(message):
     global table
@@ -113,7 +113,7 @@ async def create_message(
             id=message_id
         )
         
-        await publish_message(message_id)
+        await publish_message(message)
         
         save_message(message)
         

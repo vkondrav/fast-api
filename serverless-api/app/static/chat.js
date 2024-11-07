@@ -1,3 +1,5 @@
+let messages = []
+
 function getCookie(name) {
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
@@ -6,8 +8,18 @@ function getCookie(name) {
 
 async function fetchMessages() {
     try {
+
         const response = await fetch('/chat/messages');
-        const messages = await response.json();
+        messages = await response.json();
+
+        renderMessages();
+    } catch (error) {
+        console.error('Error fetching messages:', error);
+    }
+}
+
+function renderMessages() {
+    try {
         const messagesDiv = document.getElementById('messages');
         const userId = getCookie('user_id');
 
@@ -35,26 +47,27 @@ async function fetchMessages() {
 
             messagesDiv.appendChild(template);
         });
-
-        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        
     } catch (error) {
         console.error('Error fetching messages:', error);
     }
 }
 
 async function sendMessage() {
+
     const messageInput = document.getElementById('messageInput');
     const text = messageInput.value;
+
     if (!text) return;
+
+    messageInput.value = '';
 
     try {
         const response = await fetch(`/chat/messages?text=${encodeURIComponent(text)}`, {
             method: 'POST'
         });
 
-        if (response.ok) {
-            messageInput.value = '';
-        } else {
+        if (!response.ok) {
             console.error('Error sending message:', response.statusText);
         }
 
@@ -73,8 +86,10 @@ async function subscribe() {
     })
 
     const channel = ably.channels.get("messages")
-    await channel.subscribe("id", (message) => {
+    await channel.subscribe("message", (message) => {
         console.log("Message received: " + message.data)
-        fetchMessages()
+        messages.push(JSON.parse(message.data))
+
+        renderMessages()
     });
 }
