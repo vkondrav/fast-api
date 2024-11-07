@@ -5,3 +5,4 @@ httpx
 python-multipart
 ably
 python-dotenv
+boto3
