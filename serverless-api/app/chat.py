@@ -24,40 +24,6 @@ def get_dynamodb_table(dynamodb=Depends(get_dynamodb_resource)):
     return dynamodb.Table("messages")
 
 
-def generate_random_code(length=5):
-    return "".join(random.choices(string.ascii_letters + string.digits, k=length))
-
-
-class Message(BaseModel):
-    user: str
-    date: str
-    text: str
-    id: str
-
-
-@router.get("/messages", response_model=List[Message])
-async def get_messages(
-    sort_order: Optional[str] = Query("asc", enum=["asc", "dsc"]),
-    table=Depends(get_dynamodb_table),
-):
-
-    try:
-        response = table.scan()
-        items = response.get("Items", [])
-        messages = [Message(**item) for item in items]
-        sorted_messages = sorted(
-            messages, key=lambda x: x.date, reverse=(sort_order == "dsc")
-        )
-
-        return sorted_messages
-    except NoCredentialsError:
-        return JSONResponse(
-            content={"error": "Credentials not available"}, status_code=400
-        )
-    except Exception as e:
-        return JSONResponse(content={"error": str(e)}, status_code=400)
-
-
 async def get_ably() -> Optional[AblyRealtime]:
     load_dotenv()
 
@@ -94,8 +60,42 @@ async def publish_message(message, channel: Optional[RealtimeChannel]):
     await channel.publish("message", message.json())
 
 
+class Message(BaseModel):
+    user: str
+    date: str
+    text: str
+    id: str
+
+
+@router.get("/messages", response_model=List[Message])
+async def get_messages(
+    sort_order: Optional[str] = Query("asc", enum=["asc", "dsc"]),
+    table=Depends(get_dynamodb_table),
+):
+
+    try:
+        response = table.scan()
+        items = response.get("Items", [])
+        messages = [Message(**item) for item in items]
+        sorted_messages = sorted(
+            messages, key=lambda x: x.date, reverse=(sort_order == "dsc")
+        )
+
+        return sorted_messages
+    except NoCredentialsError:
+        return JSONResponse(
+            content={"error": "Credentials not available"}, status_code=400
+        )
+    except Exception as e:
+        return JSONResponse(content={"error": str(e)}, status_code=400)
+
+
 def save_message(message, table):
     table.put_item(Item=message.model_dump())
+
+
+def generate_user_id(length=5):
+    return "".join(random.choices(string.ascii_letters + string.digits, k=length))
 
 
 @router.post("/messages", response_model=Message)
@@ -103,14 +103,14 @@ async def create_message(
     response: Response,
     text: str,
     user_id: Optional[str] = Cookie(None),
-    table=Depends(get_dynamodb_table),
-    ably_channel: Optional[RealtimeChannel] = Depends(get_ably_channel),
+    messages_table=Depends(get_dynamodb_table),
+    messages_channel: Optional[RealtimeChannel] = Depends(get_ably_channel),
 ):
 
     try:
 
         if not user_id:
-            user_id = generate_random_code()
+            user_id = generate_user_id()
 
             days_30 = 30 * 24 * 60 * 60
 
@@ -121,9 +121,9 @@ async def create_message(
 
         message = Message(user=user_id, date=current_time, text=text, id=message_id)
 
-        await publish_message(message, ably_channel)
+        await publish_message(message, messages_channel)
 
-        save_message(message, table)
+        save_message(message, messages_table)
 
         return message
     except NoCredentialsError:
