@@ -8,6 +8,12 @@ ECR_REPOSITORY_URI=064513325338.dkr.ecr.$REGION.amazonaws.com
 
 aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
 
+npm run build --prefix chat-app
+
+rm -rf app/static/*
+mkdir -p app/static
+mv chat-app/build/* app/static/
+
 docker buildx build --platform linux/amd64 . -t $IMAGE
 docker tag $IMAGE:latest $ECR_REPOSITORY_URI/$ECR_REPOSITORY_NAME:latest
 docker push $ECR_REPOSITORY_URI/$ECR_REPOSITORY_NAME:latest

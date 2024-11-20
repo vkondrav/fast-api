@@ -1,6 +1,6 @@
 FROM public.ecr.aws/lambda/python:3.12
 
-COPY requirements.txt ./
+COPY app/requirements.txt ./
 RUN pip install -r requirements.txt
 
 COPY app/ ./
