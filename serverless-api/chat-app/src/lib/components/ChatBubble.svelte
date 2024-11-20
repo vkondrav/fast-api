@@ -13,7 +13,7 @@
     <div class="chat-image avatar px-2">
         <Avatar avatarUrl={data.avatarUrl} />
     </div>
-    <div class="chat-header">
+    <div class="chat-header pb-1">
         {data.userName}
         <time class="text-xs opacity-50">{data.time}</time>
     </div>
@@ -24,5 +24,4 @@
     >
         {data.message}
     </div>
-    <div class="chat-footer opacity-50">Delivered</div>
 </div>
