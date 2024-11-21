@@ -1,12 +1,14 @@
 <script lang="ts">
-    import type {ChatBubbleData} from "@/types";
-    import {ChatBubble} from "@/components";
+    import type {UIState} from "@/types";
+    import {ChatBubble, ProgressBar} from "@/components";
 
-    let {messages}: { messages: ChatBubbleData[] } = $props()
+    let {uiState}: { uiState: UIState } = $props()
+
     let chatSection: HTMLDivElement;
 
     $effect(() => {
-        messages.values()
+        uiState.messages
+
         chatSection.scrollTop = chatSection.scrollHeight;
     });
 
@@ -17,7 +19,18 @@
         class="flex-grow overflow-y-auto"
         bind:this={chatSection}
 >
-    {#each messages as message}
-        <ChatBubble data={message}/>
-    {/each}
+
+    {#if uiState.isLoading}
+
+        <ProgressBar/>
+
+    {:else}
+
+        {#each uiState.messages as message}
+            <ChatBubble data={message}/>
+        {/each}
+
+    {/if}
+
+
 </div>
