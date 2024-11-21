@@ -17,7 +17,7 @@
 
 </script>
 
-<div class="flex">
+<div class="flex pt-2">
     <input
             type="text"
             placeholder="Type here"
