@@ -17,14 +17,16 @@
 
 </script>
 
-<div class="flex pt-2">
-    <input
-            type="text"
-            placeholder="Type here"
-            class="input input-bordered flex-grow"
-            bind:value={input}
-            {onkeydown}
-    />
-    <div class="pr-2"></div>
-    <button class="btn btn-accent" onclick={ () => send() }>Send</button>
+<div class="pb-14 pt-2">
+    <div class="flex">
+        <input
+                type="text"
+                placeholder="Type here"
+                class="input input-bordered flex-grow"
+                bind:value={input}
+                {onkeydown}
+        />
+        <div class="pr-2"></div>
+        <button class="btn btn-accent" onclick={ () => send() }>Send</button>
+    </div>
 </div>

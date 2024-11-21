@@ -1,7 +1,7 @@
 <script lang="ts">
     import type {ChatBubbleData, UIState, UserData} from "@/types";
     import { initialState } from "@/types";
-    import {ChatSection, Input, NavBar} from "@/components";
+    import {BottomNav, ChatSection, Input, NavBar, TabBar} from "@/components";
     import {fetchMessages, fetchCurrentUser, sendMessage, subscribe} from "@/service";
     import {onMount} from "svelte";
 
@@ -25,6 +25,8 @@
 
 <div class="mx-auto flex flex-col h-screen pb-4 px-4">
     <NavBar user={currentUser}/>
+    <TabBar/>
     <ChatSection {uiState} />
     <Input sendMessage={sendMessage}/>
+    <BottomNav/>
 </div>
