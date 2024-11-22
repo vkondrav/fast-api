@@ -98,6 +98,25 @@ def generate_user_id(length=5):
     return "".join(random.choices(string.ascii_letters + string.digits, k=length))
 
 
+def get_user_id(response: Response, user_id: Optional[str] = Cookie(None)):
+    if user_id is None:
+        user_id = generate_user_id()
+
+        days_30 = 30 * 24 * 60 * 60
+
+        response.set_cookie(key="user_id", value=user_id, max_age=days_30)
+    return user_id
+
+
+class User(BaseModel):
+    user_id: str
+
+
+@router.get("/user", response_model=User)
+async def get_user(response: Response, user_id: Optional[str] = Cookie(None)):
+    return User(user_id=get_user_id(response, user_id))
+
+
 @router.post("/messages", response_model=Message)
 async def create_message(
     response: Response,
@@ -109,12 +128,7 @@ async def create_message(
 
     try:
 
-        if not user_id:
-            user_id = generate_user_id()
-
-            days_30 = 30 * 24 * 60 * 60
-
-            response.set_cookie(key="user_id", value=user_id, max_age=days_30)
+        user_id = get_user_id(response, user_id)
 
         message_id = str(uuid.uuid4())
         current_time = datetime.now(timezone.utc).isoformat()

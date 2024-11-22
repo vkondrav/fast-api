@@ -1,8 +1,8 @@
 <script lang="ts">
-    import type { ChatBubbleData } from "@/types";
+    import type { ChatBubbleModel } from "@/types";
     import { Avatar } from "@/components";
 
-    export let data: ChatBubbleData;
+    export let data: ChatBubbleModel;
 </script>
 
 <div

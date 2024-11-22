@@ -1,9 +1,9 @@
 <script lang="ts">
 
     import {Avatar} from "@/components";
-    import type {UserData} from "@/types";
+    import type {UserModel} from "@/types";
 
-    export let user: UserData
+    export let user: UserModel
 </script>
 
 <div class="navbar bg-base-300">

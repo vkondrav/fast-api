@@ -1,9 +1,9 @@
-import type {ChatBubbleData, MessageData, UserData} from "@/types";
+import type {ChatBubbleModel, MessageData, UserData, UserModel} from "@/types";
 import * as Ably from 'ably';
 
-export async function fetchMessages(currentUser: UserData): Promise<ChatBubbleData[]> {
+export async function fetchMessages(currentUser: UserModel): Promise<ChatBubbleModel[]> {
 
-    const response = await fetch("/chat/messages");
+    const response = await fetch("/api/chat/messages");
 
     const data: MessageData[] = await response.json();
 
@@ -26,28 +26,21 @@ function robohash(user: string): string {
     return `https://robohash.org/${encodeURIComponent(user)}.svg?size=60x60`
 }
 
-export function fetchCurrentUser(): UserData {
-    let userName = getCookie("user_id") || "undefined"
-    let avatarUrl = robohash(userName)
+export async function fetchCurrentUser(): Promise<UserModel> {
+
+    const response = await fetch("/api/chat/user");
+
+    const data: UserData = await response.json();
+    let avatarUrl = robohash(data.id)
 
     return {
-        name: userName,
+        name: data.id,
         avatarUrl: avatarUrl
     }
 }
 
-function getCookie(name: string): string | undefined {
-
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) {
-        return parts.pop()?.split(';').shift();
-    }
-    return undefined;
-}
-
-export async function sendMessage(message: string): Promise<ChatBubbleData> {
-    const response = await fetch(`/chat/messages?text=${encodeURIComponent(message)}`, {
+export async function sendMessage(message: string): Promise<ChatBubbleModel> {
+    const response = await fetch(`/api/chat/messages?text=${encodeURIComponent(message)}`, {
         method: "POST"
     });
 
@@ -66,7 +59,7 @@ export async function sendMessage(message: string): Promise<ChatBubbleData> {
     }
 }
 
-export async function subscribe(currentUser: UserData, onMessageReceived: (data: ChatBubbleData) => void) {
+export async function subscribe(currentUser: UserModel, onMessageReceived: (data: ChatBubbleModel) => void) {
 
     const ablySubscriptionApiKey = "6NlX7w.Tz0Ysw:uX3jPm2Pxk6WrQeSxt5QcXqEKSmOB8OCDTlCstw3usg"
 
@@ -83,7 +76,7 @@ export async function subscribe(currentUser: UserData, onMessageReceived: (data:
 
         console.log("Message received: " + newMessage)
 
-        let newChatBubble: ChatBubbleData = {
+        let newChatBubble: ChatBubbleModel = {
             userName: newMessage.user,
             time: localeDateTime(newMessage.date),
             message: newMessage.text,

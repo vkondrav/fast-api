@@ -1,11 +1,15 @@
-import type {ChatBubbleData} from "@/types/ChatBubbleData";
+import type {ChatBubbleModel} from "@/types/ChatBubbleModel";
+import type {UserModel} from "@/types/UserModel";
+import {emptyUser} from "@/types/UserModel";
 
 export interface UIState {
+    user: UserModel;
+    messages: ChatBubbleModel[];
     isLoading: boolean;
-    messages: ChatBubbleData[];
 }
 
 export const initialState: UIState = {
-    isLoading: true,
-    messages: []
+    user: emptyUser,
+    messages: [],
+    isLoading: true
 };

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type {ChatBubbleData, UIState, UserData} from "@/types";
+    import type {ChatBubbleModel, UIState, UserModel} from "@/types";
     import { initialState } from "@/types";
     import {BottomNav, ChatSection, Input, NavBar, TabBar} from "@/components";
     import {fetchMessages, fetchCurrentUser, sendMessage, subscribe} from "@/service";
@@ -7,24 +7,26 @@
 
     let uiState: UIState = $state(initialState)
 
-    let currentUser: UserData = $state({name: "", avatarUrl: ""});
-
     onMount(async () => {
-        currentUser = fetchCurrentUser();
+
+        let currentUser: UserModel = await fetchCurrentUser()
+
+        uiState.user = await fetchCurrentUser()
 
         uiState = {
-            isLoading: false,
-            messages: await fetchMessages(currentUser)
+            ...uiState,
+            messages: await fetchMessages(currentUser),
+            isLoading: false
         }
 
-        await subscribe(currentUser, (message: ChatBubbleData) => {
+        await subscribe(currentUser, (message: ChatBubbleModel) => {
             uiState.messages = [...uiState.messages, message]
         })
     });
 </script>
 
 <div class="mx-auto flex flex-col h-screen pb-4 px-4">
-    <NavBar user={currentUser}/>
+    <NavBar user={uiState.user}/>
     <TabBar/>
     <ChatSection {uiState} />
     <Input sendMessage={sendMessage}/>

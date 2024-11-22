@@ -1,4 +1,4 @@
-export interface ChatBubbleData {
+export interface ChatBubbleModel {
     userName: string;
     message: string;
     time: string;

@@ -1,4 +1,3 @@
-export interface UserData {
-  name: string;
-  avatarUrl: string;
+export type UserData = {
+    id: string;
 }
