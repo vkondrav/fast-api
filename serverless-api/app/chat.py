@@ -109,12 +109,12 @@ def get_user_id(response: Response, user_id: Optional[str] = Cookie(None)):
 
 
 class User(BaseModel):
-    user_id: str
+    id: str
 
 
 @router.get("/user", response_model=User)
 async def get_user(response: Response, user_id: Optional[str] = Cookie(None)):
-    return User(user_id=get_user_id(response, user_id))
+    return User(id=get_user_id(response, user_id))
 
 
 @router.post("/messages", response_model=Message)
