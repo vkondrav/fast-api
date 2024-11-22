@@ -1,0 +1,7 @@
+name = "chat"
+main = "src/worker.js"
+compatibility_date = "2024-11-22"
+workers_dev = true
+
+[observability]
+enabled = true
