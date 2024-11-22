@@ -30,6 +30,7 @@
 	"dependencies": {
 		"@iconify/svelte": "^4.0.2",
 		"@sveltejs/adapter-static": "^3.0.6",
-		"ably": "^2.5.0"
+		"ably": "^2.5.0",
+		"wrangler": "^3.90.0"
 	}
 }

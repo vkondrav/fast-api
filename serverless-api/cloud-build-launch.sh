@@ -14,6 +14,8 @@ rm -rf app/static/*
 mkdir -p app/static
 mv chat-app/build/* app/static/
 
+wrangler pages deploy app/static --project-name=chat
+
 docker buildx build --platform linux/amd64 . -t $IMAGE
 docker tag $IMAGE:latest $ECR_REPOSITORY_URI/$ECR_REPOSITORY_NAME:latest
 docker push $ECR_REPOSITORY_URI/$ECR_REPOSITORY_NAME:latest
