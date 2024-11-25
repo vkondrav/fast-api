@@ -14,7 +14,6 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 import concurrent.futures
-import asyncio
 from moderator import moderate_message
 
 router = APIRouter(tags=["Chat"])
@@ -161,10 +160,8 @@ async def create_message(
             moderation_pass=moderation_response.passing
         )
 
-        async def publish_chat_message():
-            await publish_message(message, messages_channel)
+        await publish_message(message, messages_channel)
 
-        executor.submit(asyncio.run, publish_chat_message())
         executor.submit(save_message, message, messages_table)
 
         return message
