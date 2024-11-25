@@ -12,8 +12,19 @@ from ably import AblyRealtime
 from ably.realtime.realtime_channel import RealtimeChannel
 import os
 from dotenv import load_dotenv
+from openai import OpenAI
+import concurrent.futures
+import asyncio
+from moderator import moderate_message
 
 router = APIRouter(tags=["Chat"])
+executor = concurrent.futures.ThreadPoolExecutor()
+
+
+def get_openai_client() -> OpenAI:
+    load_dotenv()
+
+    return OpenAI()
 
 
 def get_dynamodb_resource():
@@ -65,6 +76,7 @@ class Message(BaseModel):
     date: str
     text: str
     id: str
+    moderation_pass: bool
 
 
 @router.get("/messages", response_model=List[Message])
@@ -116,7 +128,7 @@ class User(BaseModel):
 async def get_user(response: Response, user_id: Optional[str] = Cookie(None)):
     return User(id=get_user_id(response, user_id))
 
-
+        
 @router.post("/messages", response_model=Message)
 async def create_message(
     response: Response,
@@ -124,6 +136,7 @@ async def create_message(
     user_id: Optional[str] = Cookie(None),
     messages_table=Depends(get_dynamodb_table),
     messages_channel: Optional[RealtimeChannel] = Depends(get_ably_channel),
+    openai_client: OpenAI = Depends(get_openai_client),
 ):
 
     try:
@@ -132,12 +145,27 @@ async def create_message(
 
         message_id = str(uuid.uuid4())
         current_time = datetime.now(timezone.utc).isoformat()
+        
+        moderation_response = moderate_message(text, openai_client)
+        
+        if moderation_response.passing:
+            message_text = text
+        else:
+            message_text = f"Removed by moderator: {moderation_response.message}"
 
-        message = Message(user=user_id, date=current_time, text=text, id=message_id)
+        message = Message(
+            user=user_id, 
+            date=current_time, 
+            text=message_text, 
+            id=message_id,
+            moderation_pass=moderation_response.passing
+        )
 
-        await publish_message(message, messages_channel)
+        async def publish_chat_message():
+            await publish_message(message, messages_channel)
 
-        save_message(message, messages_table)
+        executor.submit(asyncio.run, publish_chat_message())
+        executor.submit(save_message, message, messages_table)
 
         return message
     except NoCredentialsError:

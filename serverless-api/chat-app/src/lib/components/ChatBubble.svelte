@@ -21,6 +21,8 @@
         class="chat-bubble"
         class:chat-bubble-secondary={!data.isCurrentUser}
         class:chat-bubble-info={data.isCurrentUser}
+        class:chat-bubble-error={!data.moderation_pass}
+        class:italic={!data.moderation_pass}
     >
         {data.message}
     </div>

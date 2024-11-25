@@ -13,7 +13,8 @@ export async function fetchMessages(currentUser: UserModel): Promise<ChatBubbleM
             time: localeDateTime(item.date),
             message: item.text,
             avatarUrl: robohash(item.user),
-            isCurrentUser: currentUser.name === item.user
+            isCurrentUser: currentUser.name === item.user,
+            moderation_pass: item.moderation_pass
         }
     ));
 }
@@ -55,7 +56,8 @@ export async function sendMessage(message: string): Promise<ChatBubbleModel> {
         time: localeDateTime(newMessage.date),
         message: newMessage.text,
         avatarUrl: robohash(newMessage.user),
-        isCurrentUser: true
+        isCurrentUser: true,
+        moderation_pass: newMessage.moderation_pass
     }
 }
 
@@ -81,7 +83,8 @@ export async function subscribe(currentUser: UserModel, onMessageReceived: (data
             time: localeDateTime(newMessage.date),
             message: newMessage.text,
             avatarUrl: robohash(newMessage.user),
-            isCurrentUser: currentUser.name === newMessage.user
+            isCurrentUser: currentUser.name === newMessage.user,
+            moderation_pass: newMessage.moderation_pass
         }
 
         onMessageReceived(newChatBubble)

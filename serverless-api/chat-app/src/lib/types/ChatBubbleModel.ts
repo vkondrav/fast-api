@@ -4,4 +4,5 @@ export interface ChatBubbleModel {
     time: string;
     avatarUrl: string;
     isCurrentUser: boolean;
+    moderation_pass: boolean;
 }

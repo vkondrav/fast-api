@@ -3,4 +3,5 @@ export interface MessageData {
     date: string;
     text: string;
     id: string;
+    moderation_pass: boolean;
 }
