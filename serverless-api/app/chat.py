@@ -14,7 +14,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 import concurrent.futures
-from moderator_worker import moderate_message
+from moderator_worker import moderate_message, ModerationResponse
 
 router = APIRouter(tags=["Chat"])
 executor = concurrent.futures.ThreadPoolExecutor()
@@ -170,3 +170,8 @@ async def create_message(
         )
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=400)
+    
+@router.get("/moderation", response_model=ModerationResponse)
+async def get_moderation(message: str):
+    load_dotenv()
+    return moderate_message(message, os.getenv("MODERATOR_URL"))

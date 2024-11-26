@@ -6,8 +6,7 @@ FUNCTION=serverless-api
 REGION=us-east-1
 ECR_REPOSITORY_URI=064513325338.dkr.ecr.$REGION.amazonaws.com
 
-aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
-
+#Chat Pages
 npm run build --prefix chat-app
 
 rm -rf app/static/*
@@ -15,7 +14,15 @@ mkdir -p app/static
 mv chat-app/build/* app/static/
 
 wrangler pages deploy app/static --project-name=chat
+
+#Chat Proxy Worker
 wrangler deploy --config chat-worker/wrangler.toml
+
+#Chat Moderator Worker
+wrangler deploy --config moderator-worker/wrangler.toml
+
+#Lambda Function
+aws ecr get-login-password --region $REGION | docker login --username AWS --password-stdin $ECR_REPOSITORY_URI
 
 docker buildx build --platform linux/amd64 . -t $IMAGE
 docker tag $IMAGE:latest $ECR_REPOSITORY_URI/$ECR_REPOSITORY_NAME:latest
