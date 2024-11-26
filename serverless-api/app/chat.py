@@ -14,7 +14,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 import concurrent.futures
-from moderator import moderate_message
+from moderator_worker import moderate_message
 
 router = APIRouter(tags=["Chat"])
 executor = concurrent.futures.ThreadPoolExecutor()
@@ -135,7 +135,6 @@ async def create_message(
     user_id: Optional[str] = Cookie(None),
     messages_table=Depends(get_dynamodb_table),
     messages_channel: Optional[RealtimeChannel] = Depends(get_ably_channel),
-    openai_client: OpenAI = Depends(get_openai_client),
 ):
 
     try:
@@ -145,7 +144,7 @@ async def create_message(
         message_id = str(uuid.uuid4())
         current_time = datetime.now(timezone.utc).isoformat()
         
-        moderation_response = moderate_message(text, openai_client)
+        moderation_response = moderate_message(text, os.getenv("MODERATOR_URL"))
         
         if moderation_response.passing:
             message_text = text

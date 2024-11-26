@@ -7,3 +7,4 @@ ably
 python-dotenv
 boto3
 openai
+requests
