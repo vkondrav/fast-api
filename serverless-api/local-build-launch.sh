@@ -1,15 +1,20 @@
 #!/bin/bash
 
-IMAGE=serverless/api
+cleanup() {
+    echo "Killing all background processes..."
+    kill $worker_pid $app_pid $sam_pid
+}
 
-npm run build --prefix chat-app
+trap cleanup EXIT
 
-rm -rf app/static/*
-mkdir -p app/static
-mv chat-app/build/* app/static/
-
-docker buildx build --platform linux/amd64 . -t $IMAGE
+docker buildx build --platform linux/amd64 ./app -t serverless/api
 docker images -f "dangling=true" -q | xargs docker rmi
 
-sam build
-sam local start-api --warm-containers EAGER --debug
+(cd chat-worker && wrangler dev) &
+worker_pid=$!
+(cd chat-app && npm run dev) &
+app_pid=$!
+(cd app && sam build && sam local start-api --warm-containers EAGER --debug)
+sam_pid=$!
+
+wait

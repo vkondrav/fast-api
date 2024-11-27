@@ -14,7 +14,6 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 import concurrent.futures
-from moderator_worker import moderate_message, ModerationResponse
 
 router = APIRouter(tags=["Chat"])
 executor = concurrent.futures.ThreadPoolExecutor()
@@ -132,6 +131,7 @@ async def get_user(response: Response, user_id: Optional[str] = Cookie(None)):
 async def create_message(
     response: Response,
     text: str,
+    moderation_pass: Optional[bool] = True,
     user_id: Optional[str] = Cookie(None),
     messages_table=Depends(get_dynamodb_table),
     messages_channel: Optional[RealtimeChannel] = Depends(get_ably_channel),
@@ -144,19 +144,17 @@ async def create_message(
         message_id = str(uuid.uuid4())
         current_time = datetime.now(timezone.utc).isoformat()
         
-        moderation_response = moderate_message(text, os.getenv("MODERATOR_URL"))
-        
-        if moderation_response.passing:
+        if moderation_pass:
             message_text = text
         else:
-            message_text = f"Removed by moderator: {moderation_response.message}"
+            message_text = f"Removed by moderator: {text}"
 
         message = Message(
             user=user_id, 
             date=current_time, 
             text=message_text, 
             id=message_id,
-            moderation_pass=moderation_response.passing
+            moderation_pass=moderation_pass
         )
 
         await publish_message(message, messages_channel)
@@ -170,8 +168,3 @@ async def create_message(
         )
     except Exception as e:
         return JSONResponse(content={"error": str(e)}, status_code=400)
-    
-@router.get("/moderation", response_model=ModerationResponse)
-async def get_moderation(message: str):
-    load_dotenv()
-    return moderate_message(message, os.getenv("MODERATOR_URL"))

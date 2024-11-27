@@ -1,6 +1,6 @@
 from openai import OpenAI
 from dotenv import load_dotenv
-from moderator_worker import moderate_message
+from moderator import moderate_message
 import os
 
 load_dotenv()
@@ -12,6 +12,6 @@ while True:
     if user_input.lower() == 'exit':
         break
 
-    response = moderate_message(user_input, os.getenv("MODERATOR_URL"))
+    response = moderate_message(user_input, client)
 
     print(response)
