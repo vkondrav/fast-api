@@ -13,10 +13,9 @@ from ably.realtime.realtime_channel import RealtimeChannel
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
-import concurrent.futures
+import asyncio
 
 router = APIRouter(tags=["Chat"])
-executor = concurrent.futures.ThreadPoolExecutor()
 
 
 def get_openai_client() -> OpenAI:
@@ -100,7 +99,7 @@ async def get_messages(
         return JSONResponse(content={"error": str(e)}, status_code=400)
 
 
-def save_message(message, table):
+async def save_message(message, table):
     table.put_item(Item=message.model_dump())
 
 
@@ -156,10 +155,11 @@ async def create_message(
             id=message_id,
             moderation_pass=moderation_pass
         )
-
-        await publish_message(message, messages_channel)
-
-        executor.submit(save_message, message, messages_table)
+        
+        await asyncio.gather(
+            publish_message(message, messages_channel),
+            save_message(message, messages_table)
+        )
 
         return message
     except NoCredentialsError:
